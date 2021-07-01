@@ -1,0 +1,27 @@
+ROOT=..\..
+KERNEL=1
+
+!INCLUDE $(ROOT)\master.mak
+
+
+OBJS=\
+	$(OBJ)\ttycook.obj 
+
+OUT=$(LIBPATH)\ttycook$(SFX).lib
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ)\ttycook.obj: ttycook.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f

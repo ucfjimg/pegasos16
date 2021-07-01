@@ -1,0 +1,44 @@
+ROOT=..\..
+WANT_DEFLIBS=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\mkfs.obj \
+	$(OBJ)\bootsect.obj \
+	$(OBJ)\kernloc.obj
+
+OUT=$(BLDBIN)\mkfs.exe
+
+all: $(OBJ) $(OUT)
+
+LIBS=\
+	$(LIBPATH)\blkcach$(SFX).lib \
+	$(LIBPATH)\fat$(SFX).lib
+
+
+$(OUT): $(OBJS) $(LIBS)
+	link $(LFLAGS) $(OBJS),$@,,$(LIBS);
+	
+$(OBJ)\mkfs.obj: mkfs.c
+$(OBJ)\bootsect.obj: $(GENSRC)\bootsect.c
+$(OBJ)\kernload.obj: $(GENERC)\kernloc.c
+
+$(GENSRC)\bootsect.c: $(BLDBIN)\bootsect.com
+	$(BLDBIN)\f2array $(BLDBIN)\bootsect.com $(GENSRC)\bootsect.c bootsect
+
+$(GENSRC)\kernloc.c:
+	echo char *kernloc="$(BLDBIN)\kernel"; | $(BLDBIN)\escpath > $(GENSRC)\kernloc.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+	if exist $(GENSRC)\bootsect.c del $(GENSRC)\bootsect.c
+	if exist $(GENSRC)\kernloc.c del $(GENSRC)\kernloc.c
+ 
+
+
+

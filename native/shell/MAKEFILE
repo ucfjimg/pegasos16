@@ -1,0 +1,29 @@
+ROOT=..\..
+NATIVE=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\main.obj
+
+LIBS=\
+	$(LIBPATH)\crt0.lib \
+	$(LIBPATH)\msclib.lib \
+	$(LIBPATH)\bmclib.lib
+
+OUT=$(BLDBIN)\sh.exe
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS) $(LIBS)
+	link /map /stack:2048 $(LFLAGS) $(OBJS) $(LIBS),$@;
+	
+$(OBJ)\main.obj: main.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+

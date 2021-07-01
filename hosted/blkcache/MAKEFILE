@@ -1,0 +1,35 @@
+ROOT=..\..
+!INCLUDE $(ROOT)\master.mak
+
+
+OBJS=\
+	$(OBJ)\int13.obj \
+	$(OBJ)\blkcache.obj \
+	$(OBJ)\fdd.obj \
+	$(OBJ)\hdd.obj \
+	$(OBJ)\loop.obj 
+
+OUT=$(LIBPATH)\blkcach$(SFX).lib
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ)\blkcache.obj: blkcache.c $(ROOT)\kernel\include\blkcache.h
+$(OBJ)\fdd.obj: fdd.c 
+$(OBJ)\hdd.obj: hdd.c
+$(OBJ)\loop.obj: loop.c
+$(OBJ)\int13.obj: int13.asm
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+
+

@@ -1,0 +1,37 @@
+ROOT=..\..
+KERNEL=1
+
+!INCLUDE $(ROOT)\master.mak
+
+
+OBJS=\
+	$(OBJ)\int13.obj \
+	$(OBJ)\fdd.obj
+
+OUT=$(LIBPATH)\fdd$(SFX).lib
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ)\int13.obj: int13.asm
+$(OBJ)\fdd.obj: fdd.c \
+	..\include\bpb.h \
+	..\include\device.h \
+	..\include\memory.h \
+	..\include\printk.h \
+	..\include\panic.h \
+	int13.h
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+
+

@@ -1,0 +1,104 @@
+ROOT=..\..
+NATIVE=1
+
+!INCLUDE $(ROOT)\master.mak
+
+#
+# NB the compiler uses calls to small helper routines
+# for 32-bit math. We need to pull these in but we
+# don't want to pull in the entire C library to avoid
+# grabbing something that makes an INT 21h call or
+# assumes the regular crt0 stuff has been run by
+# accident. So we make a subset of the C library that
+# includes these helpers and routines we know are safe
+# and optimized like memcpy, strcpy et al.
+#
+MSCOBJS=\
+	$(OBJ)\annauldi.obj \
+	$(OBJ)\anulrem.obj \
+	$(OBJ)\anlrem.obj \
+	$(OBJ)\anuldiv.obj \
+	$(OBJ)\annaulsh.obj \
+	$(OBJ)\anulshr.obj \
+	$(OBJ)\anlshl.obj \
+	$(OBJ)\anlmul.obj \
+	$(OBJ)\anldiv.obj \
+	$(OBJ)\strcpy.obj \
+	$(OBJ)\strcmp.obj \
+	$(OBJ)\strlen.obj \
+	$(OBJ)\strrchr.obj \
+	$(OBJ)\memcpy.obj \
+	$(OBJ)\memset.obj \
+	$(OBJ)\fmemset.obj \
+	$(OBJ)\fmemcmp.obj \
+	$(OBJ)\fmemcpy.obj \
+	$(OBJ)\fstrcpy.obj \
+	$(OBJ)\fstrlen.obj \
+	$(OBJ)\diffhlp.obj
+
+#
+# These are the parts of the library that are Burgermaster
+# specific and not from MS.
+#
+BMCOBJS=\
+	$(OBJ)\exit.obj \
+	$(OBJ)\fileio.obj \
+	$(OBJ)\printf.obj \
+	$(OBJ)\malloc.obj \
+	$(OBJ)\stdio.obj \
+	$(OBJ)\ctype.obj \
+
+#
+# the part of the library that comes from the compiler.
+# this is in a separate lib as the kernel uses it but
+# we don't want the kernel to link in stuff that makes
+# syscalls
+#
+MSCLIB=\
+	$(LIBPATH)\msclib.lib
+
+#
+# The Burgermaster C library
+#
+BMCLIB=\
+	$(LIBPATH)\bmclib.lib
+
+OUT=$(MSCLIB) $(BMCLIB)
+
+all: $(OUT)
+
+$(BMCLIB): $(BMCOBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+	
+$(OBJ)\exit.obj: exit.asm
+$(OBJ)\fileio.obj: fileio.asm
+$(OBJ)\printf.obj: printf.c
+$(OBJ)\malloc.obj: malloc.c
+$(OBJ)\stdio.obj: stdio.c
+$(OBJ)\ctype.obj: ctype.c
+
+# extract the objects we need from the MSC lib
+$(MSCOBJS): slibce.lib
+	lib slibce.lib *$(@B);
+	move $(@F) $(OBJ)
+
+# build the subset of slibce
+$(MSCLIB): $(MSCOBJS)
+	lib $(MSCLIB) @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ):
+	mkdir $(OBJ)
+
+CLEAN=$(OUT) $(OBJS)
+
+clean:			      
+	for %%f in ($(CLEAN)) do if exist %%f del %%f
+	
+
+

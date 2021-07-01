@@ -1,0 +1,24 @@
+ROOT=..\..
+WANT_DEFLIBS=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\mkver.obj
+
+OUT=$(BLDBIN)\mkver.exe
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	link $(LFLAGS) $(OBJS),$@;
+	
+$(OBJ)\mkver.obj: mkver.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+

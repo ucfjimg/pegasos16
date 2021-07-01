@@ -1,0 +1,34 @@
+ROOT=..\..
+KERNEL=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\console.obj \
+	$(OBJ)\screen.obj \
+	$(OBJ)\keymap.obj
+
+OUT=\
+	$(LIBPATH)\console$(SFX).lib
+
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ)\console.obj: console.c console.h ..\include\device.h
+$(OBJ)\screen.obj: screen.c console.h ..\include\device.h
+$(OBJ)\keymap.obj: keymap.c console.h ..\include\device.h
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+
+

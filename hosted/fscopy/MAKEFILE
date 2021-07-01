@@ -1,0 +1,34 @@
+ROOT=..\..
+WANT_DEFLIBS=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\fscopy.obj \
+	$(OBJ)\bootsect.obj
+
+OUT=$(BLDBIN)\fscopy.exe
+
+all: $(OBJ) $(OUT)
+
+LIBS=\
+	$(LIBPATH)\blkcach$(SFX).lib \
+	$(LIBPATH)\fat$(SFX).lib
+
+
+$(OUT): $(OBJS) $(LIBS)
+	link $(LFLAGS) $(OBJS),$@,,$(LIBS);
+	
+$(OBJ)\fscopy.obj: fscopy.c
+$(OBJ)\bootsect.obj: $(GENSRC)\bootsect.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+$(GENSRC)\bootsect.c: $(BLDBIN)\bootsect.com
+	$(BLDBIN)\f2array $(BLDBIN)\bootsect.com $(GENSRC)\bootsect.c bootsect
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+ 

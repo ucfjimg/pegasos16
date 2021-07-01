@@ -1,0 +1,31 @@
+ROOT=..\..
+NATIVE=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\start.obj
+
+OUT=\
+	$(LIBPATH)\crt0.lib
+
+all: $(OBJ) $(OUT)
+
+$(LIBPATH)\crt0.lib: $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+	
+$(OBJ)\start.obj: start.asm
+
+$(OBJ):
+	mkdir $(OBJ)
+
+CLEAN=$(OUT) $(OBJS)
+
+clean:			      
+	for %%f in ($(CLEAN)) do if exist %%f del %%f
+	
+
+

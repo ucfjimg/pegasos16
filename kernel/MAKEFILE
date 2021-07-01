@@ -1,0 +1,158 @@
+ROOT=..
+KERNEL=1
+
+!INCLUDE $(ROOT)\master.mak
+
+#
+# NB the compiler uses calls to small helper routines
+# for 32-bit math. We need to pull these in but we
+# don't want to pull in the entire C library to avoid
+# grabbing something that makes an INT 21h call or
+# assumes the regular crt0 stuff has been run by
+# accident. So we make a subset of the C library that
+# just needs the helpers, on a case by case basis.
+#
+COBJS=\
+	$(OBJ)\afhdiff.obj \
+	$(OBJ)\annauldi.obj \
+	$(OBJ)\anulrem.obj \
+	$(OBJ)\anlrem.obj \
+	$(OBJ)\anuldiv.obj \
+	$(OBJ)\annaulsh.obj \
+	$(OBJ)\anulshr.obj \
+	$(OBJ)\anlshl.obj \
+	$(OBJ)\anlmul.obj \
+	$(OBJ)\anldiv.obj \
+	$(OBJ)\strcmp.obj \
+	$(OBJ)\strcpy.obj \
+	$(OBJ)\strlen.obj \
+	$(OBJ)\strrchr.obj \
+	$(OBJ)\memcpy.obj \
+	$(OBJ)\memset.obj \
+	$(OBJ)\fmemset.obj \
+	$(OBJ)\fmemcmp.obj \
+	$(OBJ)\fmemcpy.obj \
+	$(OBJ)\fmemmove.obj \
+	$(OBJ)\fstrcpy.obj \
+	$(OBJ)\fstrlen.obj \
+	$(OBJ)\diffhlp.obj
+
+CLIB=\
+	$(OBJ)\clib.lib
+
+KOBJS=\
+	$(OBJ)\start.obj \
+	$(OBJ)\version.obj \
+	$(OBJ)\print.obj \
+	$(OBJ)\hello.obj \
+	$(OBJ)\printk.obj \
+	$(OBJ)\kbreak.obj \
+	$(OBJ)\memory.obj \
+	$(OBJ)\device.obj \
+	$(OBJ)\blkcache.obj \
+	$(OBJ)\panic.obj \
+	$(OBJ)\exec.obj \
+	$(OBJ)\fs.obj \
+	$(OBJ)\fileio.obj \
+	$(OBJ)\ufileio.obj \
+	$(OBJ)\process.obj \
+	$(OBJ)\syscall.obj \
+	$(OBJ)\scdsp.obj \
+	$(OBJ)\ports.obj \
+	$(OBJ)\intra.obj \
+	$(OBJ)\intr.obj \
+	$(OBJ)\cmos.obj \
+	$(OBJ)\dma.obj \
+	$(OBJ)\dbview.obj \
+	$(OBJ)\dbviewa.obj \
+	$(OBJ)\dis386.obj \
+	$(OBJ)\bluescr.obj \
+	$(OBJ)\pegasus.obj
+
+KLIBS=\
+	$(LIBPATH)\sched.lib \
+	$(LIBPATH)\console.lib \
+	$(LIBPATH)\fdd.lib \
+	$(LIBPATH)\tty.lib \
+	$(LIBPATH)\ttycook.lib \
+	$(LIBPATH)\fat.lib
+
+LOBJS=\
+	$(OBJ)\loader.obj
+
+OUT=\
+	$(BLDBIN)\kernel \
+	$(BLDBIN)\loader.com
+
+all: $(OBJ) $(OUT)
+
+$(OBJ)\kernel.exe: $(KOBJS) $(CLIB) $(KLIBS)
+	link /map /stack:3072 $(LFLAGS) @<<
+$(**: = +^
+), $(OBJ)\kernel.exe;
+<<
+	
+$(BLDBIN)\kernel: $(BLDBIN)\loader.com $(OBJ)\kernel.exe
+	copy /y/b $(BLDBIN)\loader.com+$(OBJ)\kernel.exe, $(BLDBIN)\kernel
+
+
+$(BLDBIN)\loader.com: $(LOBJS)
+	link /tiny $(LFLAGS) $(LOBJS),$(BLDBIN)\loader.com;
+
+$(COBJS): slibce.lib
+	lib slibce.lib *$(@B);
+	move $(@F) $(OBJ)
+
+$(CLIB): $(COBJS)
+	lib $(CLIB) @<<
+-+$(?: = &^
+-+);
+<<
+	
+$(OBJ)\loader.obj: loader.asm
+$(OBJ)\start.obj: start.asm
+$(OBJ)\print.obj: print.asm
+$(OBJ)\version.obj: $(GENSRC)\version.c
+
+$(OBJ)\hello.obj: hello.c include\device.h include\printk.h include\memory.h
+
+$(OBJ)\printk.obj: printk.c include\printk.h include\ktypes.h
+
+$(OBJ)\kbreak.obj: kbreak.asm include\printk.h
+$(OBJ)\device.obj: device.c include\device.h
+$(OBJ)\memory.obj: memory.c include\memory.h include\panic.h
+$(OBJ)\panic.obj: panic.c include\panic.h include\printk.h
+
+$(OBJ)\task.obj: task.c
+$(OBJ)\tasksw.obj: tasksw.asm
+
+$(OBJ)\fs.obj: fs.c
+$(OBJ)\fileio.obj: fileio.c
+$(OBJ)\ufileio.obj: ufileio.c
+$(OBJ)\process.obj: process.c include\process.h
+$(OBJ)\syscall.obj: syscall.c sys\syscall.h
+$(OBJ)\ports.obj: ports.asm
+$(OBJ)\intr.obj: intr.c
+$(OBJ)\intra.obj: intra.asm
+$(OBJ)\cmos.obj: cmos.asm
+$(OBJ)\dma.obj: dma.c
+$(OBJ)\dbview.obj: dbview.c
+$(OBJ)\dbviewa.obj: dbviewa.asm
+$(OBJ)\dis386.obj: dis386.c
+$(OBJ)\pegsus.obj: pegasus.c
+ 
+$(GENSRC)\version.c: mkver
+
+mkver:
+	svnversion > $(TEMP)\kver.txt
+	mkver $(TEMP)\kver.txt > $(GENSRC)\version.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+CLEAN=$(OUT) $(KOBJS) $(LOBJS)
+clean:			      
+	for %%f in ($(CLEAN)) do if exist %%f del %%f
+	
+
+

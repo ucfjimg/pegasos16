@@ -1,0 +1,23 @@
+ROOT=..\..
+WANT_DEFLIBS=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\cdset.obj
+OUT=$(BLDBIN)\cdset.exe
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	link $(LFLAGS) $(OBJS),$@;
+	
+$(OBJ)\cdset.obj: cdset.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+

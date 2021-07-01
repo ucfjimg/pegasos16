@@ -1,0 +1,38 @@
+ROOT=..\..
+KERNEL=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\semap.obj \
+	$(OBJ)\task.obj \
+	$(OBJ)\taskq.obj \
+	$(OBJ)\tasksw.obj \
+	$(OBJ)\event.obj
+
+OUT=\
+	$(LIBPATH)\sched$(SFX).lib
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	lib $@ @<<
+-+$(?: = &^
+-+);
+<<
+
+$(OBJ)\semap.obj: semap.c
+$(OBJ)\task.obj: task.c
+$(OBJ)\taskq.obj: taskq.c
+$(OBJ)\tasksw.obj: tasksw.asm
+$(OBJ)\event.obj: event.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+CLEAN=$(OUT) 
+clean:			      
+	for %%f in ($(CLEAN)) do if exist %%f del %%f
+	
+
+

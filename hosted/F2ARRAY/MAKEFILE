@@ -1,0 +1,24 @@
+ROOT=..\..
+WANT_DEFLIBS=1
+
+!INCLUDE $(ROOT)\master.mak
+
+OBJS=\
+	$(OBJ)\f2array.obj
+
+OUT=$(BLDBIN)\f2array.exe
+
+all: $(OBJ) $(OUT)
+
+$(OUT): $(OBJS)
+	link $(LFLAGS) $(OBJS),$@;
+	
+$(OBJ)\f2array.obj: f2array.c
+
+$(OBJ):
+	mkdir $(OBJ)
+
+clean:
+	if exist $(OUT) del $(OUT)
+	for %%f in ($(OBJS)) do if exist %%f del %%f
+
